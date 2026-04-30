@@ -201,21 +201,38 @@ const Login = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
 
-  const login = () => {
-    if (!name) return;
-    setUser({ id: Date.now(), name });
+  const handleLogin = async () => {
+    if (!name) return alert("Введите имя");
+
+    const res = await fetch("http://localhost:3001/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    const data = await res.json();
+
+    localStorage.setItem("token", data.token);
+    setUser(data.user);
+
     navigate("/");
   };
 
   return (
     <div className="login">
       <h2>Вход</h2>
+
       <input
         placeholder="Имя"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <button onClick={login}>Войти</button>
+
+      <button onClick={handleLogin}>
+        Войти
+      </button>
     </div>
   );
 };
