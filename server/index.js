@@ -9,6 +9,10 @@ app.use(express.json());
 
 const SECRET = "supersecret";
 
+// ===== ФЕЙК БД =====
+const likes = {};      // { postId: [userId] }
+const comments = {};   // { postId: [{ id, text, user }] }
+
 // ===== LOGIN =====
 app.post("/login", (req, res) => {
   const { name } = req.body;
@@ -58,19 +62,70 @@ wss.on("connection", (ws, req) => {
     console.log("User connected:", user.name);
 
     ws.on("message", (msg) => {
-      // рассылаем всем
+      const data = JSON.parse(msg.toString());
+
+      // ===== LIKE =====
+      if (data.type === "LIKE") {
+        const { postId } = data;
+
+        if (!likes[postId]) likes[postId] = [];
+
+        const alreadyLiked = likes[postId].includes(user.id);
+
+        if (alreadyLiked) {
+          likes[postId] = likes[postId].filter((id) => id !== user.id);
+        } else {
+          likes[postId].push(user.id);
+        }
+
+        broadcast({
+          type: "LIKE_UPDATE",
+          postId,
+          likes: likes[postId],
+        });
+      }
+
+      // ===== COMMENT =====
+      if (data.type === "COMMENT") {
+        const { postId, text } = data;
+
+        if (!comments[postId]) comments[postId] = [];
+
+        const newComment = {
+          id: Date.now(),
+          text,
+          user: ws.user,
+        };
+
+        comments[postId].push(newComment);
+
+        broadcast({
+          type: "COMMENT_UPDATE",
+          postId,
+          comments: comments[postId],
+        });
+      }
+
+      // ===== CHAT =====
+      if (data.type === "CHAT") {
+        broadcast({
+          type: "CHAT",
+          user: user.name,
+          message: data.message,
+        });
+      }
+    });
+
+    function broadcast(data) {
       wss.clients.forEach((client) => {
         if (client.readyState === 1) {
-          client.send(
-            JSON.stringify({
-              user: user.name,
-              message: msg.toString(),
-            })
-          );
+          client.send(JSON.stringify(data));
         }
       });
-    });
-  } catch {
+    }
+
+  } catch (err) {
+    console.log("WS auth error");
     ws.close();
   }
 });

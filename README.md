@@ -1,33 +1,34 @@
-# 🧑‍💻 Social App
+# Social App - инструкция запуска
 
-Простой проект на React с функционалом социальной сети.
-
-## 🚀 Функционал
-
-- 📰 Главная страница (лента постов)
-- 👤 Страница профиля
-- 📄 Детальная страница поста
-- ✍️ Создание поста
-- 🔐 Авторизация (UI, без backend)
-- 🔄 Навигация через React Router
-- ⚡ Глобальное состояние через Zustand
-- ⏳ Обработка загрузки и ошибок
-- 📱 Адаптивный дизайн (desktop + mobile)
-
----
-
-## 🛠️ Технологии
-
-- React
-- React Router
-- Zustand
-- Vite
-- CSS
-
----
-
-## 📦 Установка и запуск
+## Скопируй и вставь команды по порядку:
 
 ```bash
+# 1. Установка бэкенда
+cd backend
 npm install
+npm install --save-dev @types/node
+
+# 2. Создание .env файла
+echo 'DATABASE_URL="postgresql://postgres:password@localhost:5432/social_app"' > .env
+echo 'PORT=3000' >> .env
+echo 'JWT_SECRET="your-secret-key"' >> .env
+
+# 3. Настройка Prisma
+npx prisma generate
+npx prisma migrate dev --name init
+
+# 4. Запуск бэкенда
 npm run dev
+Открой новый терминал (Ctrl+Shift+T) и вставь:
+
+bash
+# 5. Установка фронтенда
+cd ..
+npm install
+
+# 6. Запуск фронтенда
+npm run dev
+Готово! Открой в браузере:
+Фронтенд: http://localhost:5173
+
+Бэкенд: http://localhost:3000
